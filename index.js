@@ -34,6 +34,11 @@ printar na tela o Nome, TELEFONE, ENDEREÇO
 //Para converter callbacks para promises, usamos o modulo interno do node.js
 //se a função seguir a convenção -> 1 parametro = erro e 2 parametro = sucesso
 
+//os mano do C#, criaram a feature
+//para realizar promise na mesma linha
+//a mesma ordem de código que é escrio é executada
+//1º inserir a palavra async na função
+//2º inserir a palavra await na promise
 
 const {promisify} = require('util');
 
@@ -126,36 +131,69 @@ function telefone(idUsuario, callback){
     
 // }
 
-function main(){
-    obterUsuario()
-    .then(function resolverUsuario(usuario){
-        const resultado = endereco(usuario.id)
-        const promiseEndereco = resultado.then(function(meuEndereco){
-            return {
-                usuario: usuario,
-                endereco: meuEndereco
-            }
-        })
-        return promiseEndereco
-    })
-    .then(function(resultado){
-        return obterTelefoneAsync(resultado.usuario.id)
-        .then(function(meuTelefone){
-            return{
-                telefone: meuTelefone,
-                // usuario: resultado.usuario,
-                // endereco: resultado.endereco
-                ...resultado
+// function main(){
+//     obterUsuario()
+//     .then(function resolverUsuario(usuario){
+//         const resultado = endereco(usuario.id)
+//         const promiseEndereco = resultado.then(function(meuEndereco){
+//             return {
+//                 usuario: usuario,
+//                 endereco: meuEndereco
+//             }
+//         })
+//         return promiseEndereco
+//     })
+//     .then(function(resultado){
+//         return obterTelefoneAsync(resultado.usuario.id)
+//         .then(function(meuTelefone){
+//             return{
+//                 telefone: meuTelefone,
+//                 // usuario: resultado.usuario,
+//                 // endereco: resultado.endereco
+//                 ...resultado
 
-            }
-        })
-    })
-    .then(function(resultado){
-        console.log('final', resultado);
-    })
-    .catch(function(error){
-        console.log("DEU RUIM", error)
-    })
+//             }
+//         })
+//     })
+//     .then(function(resultado){
+//         console.log('final', resultado);
+//     })
+//     .catch(function(error){
+//         console.log("DEU RUIM", error)
+//     })
+// }
+
+async function main(){
+    try{
+        console.time("promise");
+        const usuario = await obterUsuario()
+        // const enderecoResultado = await endereco(usuario.id)
+        // const telefone = await obterTelefoneAsync(usuario.id)
+
+        //para executar as funções em paralelo
+        //executamos as funções que não são dependentes
+        //uma da outra ao mesmo tempo
+        //extraimos somente e a segunda posição
+        //deste array
+
+        const [enderecoResultado, telefone] = await Promise.all(
+        [
+            endereco(usuario.id),
+            obterTelefoneAsync(usuario.id)
+        ]
+        )
+        console.log(`Nome: ${usuario.nome}
+                     Endereco: ${enderecoResultado.rua},
+                     Telefone: (${telefone.ddd} ${telefone.telefone}`);
+        console.timeEnd("promise");
+    }
+    catch(err)
+    {
+        console.log("DEU RUIM, MAS MAIS BONITO", err);
+    }
+
+    
 }
+
 
 main();
